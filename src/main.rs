@@ -3,21 +3,25 @@ use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 use serde::Deserialize;
 use serde_json::json;
 
-#[derive(Parser, Debug)]
-#[clap(author, version, about, long_about=None)]
+#[derive(Parser, Default, Debug)]
+#[clap(
+    author = "Matias Piqueras",
+    version,
+    about = "Simple CLI tool to prompt and get answers from OpenAI's language models"
+)]
 struct Cli {
-    // The prompt to generate completion for
-    #[clap(short, long)]
+    #[clap(forbid_empty_values = true)]
+    /// The prompt to generate completion for
     prompt: String,
-    // The model to use
-    #[clap(short = 'm', long = "model", default_value = "text-davinci-002")]
+    /// The model to use
+    #[clap(short, long, default_value = "text-davinci-002")]
     model: String,
-    // Max number of tokens to return
-    #[clap(short = 'n', long = "num-tokens", default_value = "200")]
+    /// Max number of tokens to return
+    #[clap(short='n', long, default_value = "200")]
     max_tokens: usize,
-    // Higher values mean model will take
+    /// Higher values mean model will take
     // more risk.
-    #[clap(short = 't', long = "temperature", default_value = "0.75")]
+    #[clap(short, long, default_value = "0.75")]
     temperature: f32,
 }
 
@@ -58,8 +62,9 @@ async fn main() {
 
     let text_completion = res.unwrap().json::<TextCompletion>().await.unwrap();
     let text = &text_completion.choices[0].text;
+    // remove lines with just whitespace
+    let text = text.split('\n').filter(|s| !s.trim().is_empty()).collect::<Vec<&str>>().join("\n");
 
-    // print the text
-    println!("Prompt: {}", args.prompt);
-    println!("Answer: {}", text);
+    println!("\u{1F914}: {}", args.prompt);
+    println!("\u{1F680}: {}",  text);
 }
